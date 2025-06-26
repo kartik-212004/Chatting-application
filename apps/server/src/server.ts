@@ -4,7 +4,10 @@ const rooms: Record<string, WebSocket[]> = {};
 interface Message {
   type: string;
   roomId: string;
-  data: any;
+  data: {
+    name: string;
+    payload: string;
+  };
 }
 
 const wss = new WebSocketServer({ port: 8080 });
@@ -20,13 +23,18 @@ wss.on("connection", (ws) => {
         rooms[roomId] = [];
       }
       rooms[roomId].push(ws);
-      console.log(`Client joined room ${roomId}`);
+      console.log(`${data.name} joined room ${roomId}`);
     }
-    rooms[roomId]?.forEach((client) => {
-      if (client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({ type, roomId, data }));
-      }
-    });
+
+    if (type === "chat") {
+      rooms[roomId]?.forEach((client) => {
+        if (client !== ws && client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({ type, roomId, data }));
+          console.log(`[${data.name}] ${data.payload}`);
+        }
+      });
+      return;
+    }
   });
 
   ws.on("close", () => {
