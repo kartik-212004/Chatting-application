@@ -38,7 +38,6 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-// Dynamically import EmojiPicker to avoid SSR issues
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false });
 
 export default function ChatPage() {
@@ -57,12 +56,10 @@ export default function ChatPage() {
   const searchParams = useSearchParams();
   const name = searchParams.get('name') || 'User';
 
-  // Auto-scroll to bottom when messages change
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Check if mobile on mount
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -78,7 +75,6 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages]);
 
-  // Handle click outside emoji picker
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -113,7 +109,6 @@ export default function ChatPage() {
 
       ws.current.onopen = () => {
         console.log('WebSocket connected');
-        // Send join message immediately after connection
         ws.current?.send(
           JSON.stringify({
             type: 'join',
@@ -131,13 +126,11 @@ export default function ChatPage() {
           setMessages(prev => [...prev, msg.data]);
         }
 
-        // Handle user list updates
         if (msg.type === 'users') {
           console.log('Updated user list:', msg.data);
           setConnectedUsers(msg.data);
         }
 
-        // Handle join confirmation
         if (msg.type === 'join' && msg.status === 'success') {
           console.log('Successfully joined room');
         }
@@ -149,9 +142,7 @@ export default function ChatPage() {
 
       ws.current.onclose = event => {
         console.log('WebSocket closed:', event.code, event.reason);
-        // Attempt to reconnect after a delay
         if (event.code !== 1000) {
-          // 1000 is normal closure
           setTimeout(() => {
             console.log('Attempting to reconnect...');
             connectWebSocket();
@@ -183,12 +174,10 @@ export default function ChatPage() {
     setMessages(prev => [...prev, message.data]);
     setNewMessage('');
 
-    // Keep focus on input to prevent keyboard collapse
     if (inputRef.current) {
       inputRef.current.focus();
     }
 
-    // Scroll to bottom after sending message with a delay to prevent focus loss
     setTimeout(scrollToBottom, 50);
   };
 
@@ -223,7 +212,6 @@ export default function ChatPage() {
     setNewMessage(newValue);
     setShowEmojiPicker(false);
 
-    // Restore focus and cursor position
     setTimeout(() => {
       if (inputRef.current) {
         inputRef.current.focus();
@@ -235,7 +223,6 @@ export default function ChatPage() {
 
   return (
     <div className='mobile-vh flex flex-col bg-gradient-to-br from-background to-muted/20'>
-      {/* Mobile Header */}
       <div className='md:hidden flex-shrink-0'>
         <Card className='border-0 border-b rounded-none'>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 p-4'>
@@ -360,7 +347,6 @@ export default function ChatPage() {
       </div>
 
       <div className='flex flex-1 overflow-hidden min-h-0'>
-        {/* Desktop Sidebar */}
         <Card className='w-80 border-0 border-r rounded-none hidden md:block flex-shrink-0'>
           <CardHeader className='border-b p-4'>
             {' '}
@@ -437,9 +423,7 @@ export default function ChatPage() {
           </CardContent>
         </Card>
 
-        {/* Main Chat Area */}
         <div className='flex-1 flex flex-col overflow-hidden min-h-0'>
-          {/* Desktop Header */}
           <Card className='border-0 border-b rounded-none hidden md:block flex-shrink-0'>
             <CardHeader className='flex flex-row items-center justify-between space-y-0 p-4'>
               <div>
@@ -451,7 +435,6 @@ export default function ChatPage() {
             </CardHeader>
           </Card>
 
-          {/* Messages */}
           <div className='flex-1 overflow-hidden min-h-0'>
             <ScrollArea className='h-full p-3 md:p-4'>
               <div className='space-y-4 max-w-4xl mx-auto'>
@@ -517,7 +500,6 @@ export default function ChatPage() {
                         </div>
                       );
                     })}
-                    {/* Scroll target */}
                     <div ref={messagesEndRef} />
                   </>
                 )}
@@ -525,10 +507,8 @@ export default function ChatPage() {
             </ScrollArea>
           </div>
 
-          {/* Message Input */}
           <Card className='border-0 border-t rounded-none flex-shrink-0'>
             <CardContent className='p-3 md:p-4 pb-safe relative'>
-              {/* Emoji Picker */}
               {showEmojiPicker && (
                 <div
                   ref={emojiPickerRef}

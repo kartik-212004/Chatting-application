@@ -40,7 +40,6 @@ export default function HomePage() {
     const generatedCode = code.toUpperCase();
     setRoomCode(generatedCode);
 
-    // Automatically join the room after generating
     setTimeout(() => {
       joinRoomWithCode(generatedCode);
     }, 100);
@@ -91,7 +90,6 @@ export default function HomePage() {
 
   return (
     <div className='mobile-vh flex items-center justify-center bg-gradient-to-br from-background to-muted/20 overflow-hidden'>
-      {/* Desktop Layout */}
       <div className='hidden md:flex md:items-center md:justify-center md:p-4 w-full h-full'>
         <div className='absolute top-4 right-4'>
           <Button
@@ -181,7 +179,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Mobile Layout - Full Screen */}
       <div className='md:hidden w-full h-full flex flex-col'>
         <div className='absolute top-4 right-4 z-10'>
           <Button

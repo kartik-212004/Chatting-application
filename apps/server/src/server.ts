@@ -13,7 +13,6 @@ interface Message {
 
 const wss = new WebSocketServer({ port: Number(process.env.PORT) || 8080 });
 
-// Function to broadcast user list to all clients in a room
 const broadcastUserList = (roomId: string) => {
   if (!rooms[roomId]) return;
 
@@ -62,21 +61,17 @@ wss.on('connection', ws => {
         rooms[roomId] = [];
       }
 
-      // Check if user is already in the room (reconnection)
       const existingUserIndex = rooms[roomId].findIndex(
         user => user.name === data.name
       );
       if (existingUserIndex !== -1) {
-        // Update the WebSocket connection for existing user
         rooms[roomId][existingUserIndex].ws = ws;
       } else {
-        // Add new user to room
         rooms[roomId].push({ ws, name: data.name });
       }
 
       console.log(`${data.name} joined room ${roomId}`);
 
-      // Send welcome message to the joining user
       ws.send(
         JSON.stringify({
           type: 'join',
@@ -86,7 +81,6 @@ wss.on('connection', ws => {
         })
       );
 
-      // Broadcast updated user list to all users in the room
       broadcastUserList(roomId);
     }
 
