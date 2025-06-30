@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 import { useEffect, useRef, useState } from 'react';
 
@@ -22,9 +24,19 @@ export default function ChatPage() {
   const [roomId, setRoomId] = useState<string | null>(null);
   const [connectedUsers, setConnectedUsers] = useState<string[]>([]);
   const ws = useRef<WebSocket | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const params = useParams();
   const searchParams = useSearchParams();
   const name = searchParams.get('name') || 'User';
+
+  // Auto-scroll to bottom when messages change
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
     if (params.roomId) {
@@ -110,6 +122,9 @@ export default function ChatPage() {
     ws.current.send(JSON.stringify(message));
     setMessages(prev => [...prev, message.data]);
     setNewMessage('');
+    
+    // Scroll to bottom after sending message
+    setTimeout(scrollToBottom, 100);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -121,7 +136,10 @@ export default function ChatPage() {
   const copyRoomId = () => {
     if (roomId) {
       navigator.clipboard.writeText(roomId);
-      toast.success(`${roomId} copied to clipboard`);
+      toast.success(`Room ID ${roomId} copied to clipboard!`, {
+        duration: 2000,
+        position: 'bottom-center',
+      });
     }
   };
 
@@ -130,201 +148,298 @@ export default function ChatPage() {
   };
 
   return (
-    <div className='h-screen from-background to-muted/20 flex'>
-      <div className='absolute top-4 right-4'>
-        <Button
-          variant='ghost'
-          size='icon'
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className='rounded-full'
-        >
-          {theme === 'dark' ? (
-            <Sun className='h-5 w-5' />
-          ) : (
-            <Moon className='h-5 w-5' />
-          )}
-        </Button>
-      </div>
-      {/* Sidebar */}
-      <Card className='w-80 border-0 border-r rounded-none hidden md:block'>
-        <CardHeader className='border-b p-4'>
-          <div className='flex items-center justify-between'>
-            <div>
-              <h2 className='text-lg font-semibold'>Chat Room</h2>
-              <p className='text-sm text-muted-foreground'>
-                {connectedUsers.length} online
-              </p>
-            </div>
-          </div>
-        </CardHeader>
-
-        <CardContent className='p-0'>
-          <ScrollArea className='h-[calc(100vh-5rem)]'>
-            <div className='p-4 space-y-1'>
-              {roomId && (
-                <div className='mb-4'>
-                  <div className='text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2'>
-                    Room ID
-                  </div>
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    onClick={copyRoomId}
-                    className='w-full justify-between text-xs'
-                  >
-                    <span className='truncate'>{roomId}</span>
-                    <Copy className='h-3 w-3 ml-2' />
-                  </Button>
-                </div>
-              )}
-
-              <div className='text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2'>
-                Online - {connectedUsers.length}
-              </div>
-              {connectedUsers.map((user, index) => (
-                <div
-                  key={index}
-                  className='flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer'
-                >
-                  <div className='relative'>
-                    <Avatar className='w-8 h-8'>
-                      <AvatarFallback className='text-xs bg-primary/10 text-primary'>
-                        {getInitials(user)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className='absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-background' />
-                  </div>
-                  <span className='text-sm font-medium'>{user}</span>
-                  {user === name && (
-                    <span className='text-xs text-muted-foreground'>(You)</span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-        </CardContent>
-      </Card>
-
-      {/* Main Chat Area */}
-      <div className='flex-1 flex flex-col'>
-        {/* Header */}
+    <div className='h-screen flex flex-col bg-gradient-to-br from-background to-muted/20'>
+      {/* Mobile Header */}
+      <div className='md:hidden'>
         <Card className='border-0 border-b rounded-none'>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 p-4'>
             <div className='flex items-center gap-3'>
-              <div className='md:hidden'>
-                <Button
-                  variant='ghost'
-                  size='icon'
-                  className='rounded-full'
-                >
-                  <Users className='h-5 w-5' />
-                </Button>
-              </div>
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant='ghost' size='icon' className='rounded-full'>
+                    <Users className='h-5 w-5' />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side='left' className='w-80'>
+                  <SheetHeader>
+                    <SheetTitle className='font-clash font-medium'>Chat Room</SheetTitle>
+                    <SheetDescription className='font-light'>
+                      {connectedUsers.length} members online
+                    </SheetDescription>
+                  </SheetHeader>
+                  
+                  <div className='mt-6 space-y-4'>
+                    {roomId && (
+                      <div>
+                        <div className='text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2'>
+                          Room ID
+                        </div>
+                        <Button
+                          variant='outline'
+                          size='sm'
+                          onClick={copyRoomId}
+                          className='w-full justify-between text-xs'
+                        >
+                          <span className='truncate'>{roomId}</span>
+                          <Copy className='h-3 w-3 ml-2' />
+                        </Button>
+                      </div>
+                    )}
+
+                    <div>
+                      <div className='text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2'>
+                        Online - {connectedUsers.length}
+                      </div>
+                      <div className='space-y-1'>
+                        {connectedUsers.map((user, index) => (
+                          <div
+                            key={index}
+                            className='flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors'
+                          >
+                            <div className='relative'>
+                              <Avatar className='w-8 h-8'>
+                                <AvatarFallback className='text-xs bg-primary/10 text-primary'>
+                                  {getInitials(user)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className='absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-background' />
+                            </div>
+                            <span className='text-sm font-medium font-clash'>{user}</span>
+                            {user === name && (
+                              <span className='text-xs text-muted-foreground font-light'>(You)</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+              
               <div>
                 <h1 className='font-semibold text-lg'>Chat Room</h1>
                 <p className='text-sm text-muted-foreground'>
-                  {connectedUsers.length} members online
+                  {connectedUsers.length} online
                 </p>
+              </div>
+            </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant='ghost' size='icon' className='rounded-full'>
+                  <MoreVertical className='h-5 w-5' />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align='end'>
+                <DropdownMenuItem onClick={copyRoomId}>
+                  <Copy className='h-4 w-4 mr-2' />
+                  Copy Room ID
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+                  {theme === 'dark' ? (
+                    <>
+                      <Sun className='h-4 w-4 mr-2' />
+                      Light Mode
+                    </>
+                  ) : (
+                    <>
+                      <Moon className='h-4 w-4 mr-2' />
+                      Dark Mode
+                    </>
+                  )}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </CardHeader>
+        </Card>
+      </div>
+
+      <div className='flex flex-1 overflow-hidden'>
+        {/* Desktop Sidebar */}
+        <Card className='w-80 border-0 border-r rounded-none hidden md:block'>
+          <CardHeader className='border-b p-4'>          <div className='flex items-center justify-between'>
+            <div>
+              <h2 className='text-lg font-medium font-clash'>Chat Room</h2>
+              <p className='text-sm text-muted-foreground font-light'>
+                {connectedUsers.length} online
+              </p>
+            </div>
+              <div className='flex items-center gap-2'>
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  className='h-8 w-8'
+                >
+                  {theme === 'dark' ? <Sun className='h-4 w-4' /> : <Moon className='h-4 w-4' />}
+                </Button>
               </div>
             </div>
           </CardHeader>
-        </Card>
 
-        {/* Messages */}
-        <ScrollArea className='flex-1 p-4'>
-          <div className='space-y-4 max-w-6xl mx-auto'>
-            {messages.length === 0 ? (
-              <div className='flex justify-center items-start h-64'>
-                <p className='text-muted-foreground'>
-                  No messages yet. Start the conversation!
-                </p>
-              </div>
-            ) : (
-              messages.map((message, index) => {
-                const isMyMessage = message.name === name;
-                return (
+          <CardContent className='p-0'>
+            <ScrollArea className='h-[calc(100vh-5rem)]'>
+              <div className='p-4 space-y-1'>
+                {roomId && (
+                  <div className='mb-4'>
+                    <div className='text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2'>
+                      Room ID
+                    </div>
+                    <Button
+                      variant='outline'
+                      size='sm'
+                      onClick={copyRoomId}
+                      className='w-full justify-between text-xs'
+                    >
+                      <span className='truncate'>{roomId}</span>
+                      <Copy className='h-3 w-3 ml-2' />
+                    </Button>
+                  </div>
+                )}
+
+                <div className='text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2'>
+                  Online - {connectedUsers.length}
+                </div>
+                {connectedUsers.map((user, index) => (
                   <div
                     key={index}
-                    className={`flex gap-3 ${isMyMessage ? 'justify-end' : 'justify-start'}`}
+                    className='flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer'
                   >
-                    {!isMyMessage && (
-                      <Avatar className='w-10 h-10'>
-                        <AvatarFallback className='text-sm bg-primary/10 text-primary'>
-                          {getInitials(message.name)}
+                    <div className='relative'>
+                      <Avatar className='w-8 h-8'>
+                        <AvatarFallback className='text-xs bg-primary/10 text-primary'>
+                          {getInitials(user)}
                         </AvatarFallback>
                       </Avatar>
-                    )}
-                    <div className={`max-w-md ${isMyMessage ? 'order-first' : ''}`}>
-                      <div
-                        className={`rounded-2xl px-4 py-3 ${
-                          isMyMessage
-                            ? 'bg-primary text-primary-foreground ml-auto'
-                            : 'bg-muted'
-                        }`}
-                      >
-                        <p className='text-sm'>{message.payload}</p>
-                      </div>
-                      <div
-                        className={`flex items-center gap-2 mt-1 text-xs text-muted-foreground ${
-                          isMyMessage ? 'justify-end' : 'justify-start'
-                        }`}
-                      >
-                        {!isMyMessage && (
-                          <span className='font-medium'>{message.name}</span>
-                        )}
-                        <span>
-                          {new Date().toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
-                      </div>
+                      <div className='absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-background' />
                     </div>
-                    {isMyMessage && (
-                      <Avatar className='w-10 h-10'>
-                        <AvatarFallback className='text-sm bg-primary text-primary-foreground'>
-                          {getInitials(name)}
-                        </AvatarFallback>
-                      </Avatar>
+                    <span className='text-sm font-medium font-clash'>{user}</span>
+                    {user === name && (
+                      <span className='text-xs text-muted-foreground font-light'>(You)</span>
                     )}
                   </div>
-                );
-              })
-            )}
-          </div>
-        </ScrollArea>
-
-        {/* Message Input */}
-        <Card className='border-0 border-t rounded-none'>
-          <CardContent className='p-4'>
-            <div className='max-w-4xl mx-auto'>
-              <div className='flex gap-3'>
-                <Avatar className='w-10 h-10'>
-                  <AvatarFallback className='text-sm bg-primary text-primary-foreground'>
-                    {getInitials(name)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className='flex-1 flex gap-2'>
-                  <Input
-                    value={newMessage}
-                    onChange={e => setNewMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder='Type a message...'
-                    className='flex-1 h-12 rounded-full'
-                  />
-                  <Button
-                    onClick={sendMessage}
-                    size='icon'
-                    className='h-12 w-12 rounded-full'
-                    disabled={!newMessage.trim()}
-                  >
-                    <Send className='h-5 w-5' />
-                  </Button>
-                </div>
+                ))}
               </div>
-            </div>
+            </ScrollArea>
           </CardContent>
         </Card>
+
+        {/* Main Chat Area */}
+        <div className='flex-1 flex flex-col'>
+          {/* Desktop Header */}
+          <Card className='border-0 border-b rounded-none hidden md:block'>
+            <CardHeader className='flex flex-row items-center justify-between space-y-0 p-4'>
+              <div>
+                <h1 className='font-medium text-lg font-clash'>Chat Room</h1>
+                <p className='text-sm text-muted-foreground font-light'>
+                  {connectedUsers.length} online
+                </p>
+              </div>
+            </CardHeader>
+          </Card>
+
+          {/* Messages */}
+          <div className='flex-1 overflow-hidden'>
+            <ScrollArea className='h-full p-4'>
+              <div className='space-y-4 max-w-4xl mx-auto'>
+                {messages.length === 0 ? (
+                  <div className='flex justify-center items-center h-64'>
+                    <p className='text-muted-foreground text-center'>
+                      No messages yet. Start the conversation!
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    {messages.map((message, index) => {
+                      const isMyMessage = message.name === name;
+                      return (
+                        <div
+                          key={index}
+                          className={`flex gap-3 ${isMyMessage ? 'justify-end' : 'justify-start'}`}
+                        >
+                          {!isMyMessage && (
+                            <Avatar className='w-8 h-8 md:w-10 md:h-10'>
+                              <AvatarFallback className='text-xs md:text-sm bg-primary/10 text-primary'>
+                                {getInitials(message.name)}
+                              </AvatarFallback>
+                            </Avatar>
+                          )}
+                          <div className={`max-w-[80%] md:max-w-md ${isMyMessage ? 'order-first' : ''}`}>
+                            <div
+                              className={`rounded-2xl px-3 py-2 md:px-4 md:py-3 ${
+                                isMyMessage
+                                  ? 'bg-primary text-primary-foreground ml-auto'
+                                  : 'bg-muted'
+                              }`}
+                            >
+                              <p className='text-sm font-normal'>{message.payload}</p>
+                            </div>
+                            <div
+                              className={`flex items-center gap-2 mt-1 text-xs text-muted-foreground ${
+                                isMyMessage ? 'justify-end' : 'justify-start'
+                              }`}
+                            >
+                              {!isMyMessage && (
+                                <span className='font-medium'>{message.name}</span>
+                              )}
+                              <span>
+                                {new Date().toLocaleTimeString([], {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </span>
+                            </div>
+                          </div>
+                          {isMyMessage && (
+                            <Avatar className='w-8 h-8 md:w-10 md:h-10'>
+                              <AvatarFallback className='text-xs md:text-sm bg-primary text-primary-foreground'>
+                                {getInitials(name)}
+                              </AvatarFallback>
+                            </Avatar>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {/* Scroll target */}
+                    <div ref={messagesEndRef} />
+                  </>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+
+          {/* Message Input */}
+          <Card className='border-0 border-t rounded-none'>
+            <CardContent className='p-3 md:p-4'>
+              <div className='max-w-4xl mx-auto'>
+                <div className='flex gap-2 md:gap-3'>
+                  <Avatar className='w-8 h-8 md:w-10 md:h-10'>
+                    <AvatarFallback className='text-xs md:text-sm bg-primary text-primary-foreground'>
+                      {getInitials(name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className='flex-1 flex gap-2'>
+                    <Input
+                      value={newMessage}
+                      onChange={e => setNewMessage(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder='Type a message...'
+                      className='flex-1 h-10 md:h-12 rounded-full'
+                    />
+                    <Button
+                      onClick={sendMessage}
+                      size='icon'
+                      className='h-10 w-10 md:h-12 md:w-12 rounded-full'
+                      disabled={!newMessage.trim()}
+                    >
+                      <Send className='h-4 w-4 md:h-5 md:w-5' />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

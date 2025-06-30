@@ -1,11 +1,47 @@
 import type React from "react";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
+import "../styles/css/clash-grotesk.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 
-const inter = Inter({ subsets: ["latin"] });
+const clashGrotesk = localFont({
+  src: [
+    {
+      path: "../styles/fonts/ClashGrotesk-Extralight.woff2",
+      weight: "200",
+      style: "normal",
+    },
+    {
+      path: "../styles/fonts/ClashGrotesk-Light.woff2",
+      weight: "300",
+      style: "normal",
+    },
+    {
+      path: "../styles/fonts/ClashGrotesk-Regular.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../styles/fonts/ClashGrotesk-Medium.woff2",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../styles/fonts/ClashGrotesk-Semibold.woff2",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "../styles/fonts/ClashGrotesk-Bold.woff2",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  variable: "--font-clash-grotesk",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Real Time Chat",
@@ -20,7 +56,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={`${clashGrotesk.variable} font-sans`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
