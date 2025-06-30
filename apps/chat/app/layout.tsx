@@ -1,69 +1,74 @@
-import type React from "react";
-import type { Metadata } from "next";
-import localFont from "next/font/local";
-import "./globals.css";
-import "../styles/css/clash-grotesk.css";
-import { Toaster } from "@/components/ui/sonner";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider } from '@/components/theme-provider';
+import { Toaster } from '@/components/ui/sonner';
 
-const clashGrotesk = localFont({
+import type React from 'react';
+
+import type { Metadata } from 'next';
+import localFont from 'next/font/local';
+
+import '../styles/css/satoshi.css';
+import './globals.css';
+
+const satoshi = localFont({
   src: [
     {
-      path: "../styles/fonts/ClashGrotesk-Extralight.woff2",
-      weight: "200",
-      style: "normal",
+      path: '../styles/fonts/Satoshi-Light.woff2',
+      weight: '300',
+      style: 'normal',
     },
     {
-      path: "../styles/fonts/ClashGrotesk-Light.woff2",
-      weight: "300",
-      style: "normal",
+      path: '../styles/fonts/Satoshi-Regular.woff2',
+      weight: '400',
+      style: 'normal',
     },
     {
-      path: "../styles/fonts/ClashGrotesk-Regular.woff2",
-      weight: "400",
-      style: "normal",
+      path: '../styles/fonts/Satoshi-Medium.woff2',
+      weight: '500',
+      style: 'normal',
     },
     {
-      path: "../styles/fonts/ClashGrotesk-Medium.woff2",
-      weight: "500",
-      style: "normal",
+      path: '../styles/fonts/Satoshi-Bold.woff2',
+      weight: '700',
+      style: 'normal',
     },
     {
-      path: "../styles/fonts/ClashGrotesk-Semibold.woff2",
-      weight: "600",
-      style: "normal",
-    },
-    {
-      path: "../styles/fonts/ClashGrotesk-Bold.woff2",
-      weight: "700",
-      style: "normal",
+      path: '../styles/fonts/Satoshi-Black.woff2',
+      weight: '900',
+      style: 'normal',
     },
   ],
-  variable: "--font-clash-grotesk",
-  display: "swap",
+  variable: '--font-satoshi',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: "Real Time Chat",
-  description: "A simple chat application UI",
-  generator: "v0.dev",
+  title: 'Real Time Chat',
+  description: 'A simple chat application UI',
+  generator: 'v0.dev',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${clashGrotesk.variable} font-sans`}>
+    <html
+      lang='en'
+      suppressHydrationWarning
+    >
+      <body className={`${satoshi.variable} font-satoshi`}>
         <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
+          attribute='class'
+          defaultTheme='dark'
           enableSystem
         >
           {children}
-          <Toaster position="bottom-center" />
+          <Toaster position='top-center' />
         </ThemeProvider>
       </body>
     </html>

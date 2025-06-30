@@ -58,6 +58,44 @@
   }
 }
 
+/* Mobile viewport height fixes */
+.mobile-vh {
+  height: 100vh; /* fallback for older browsers */
+  height: 100dvh; /* dynamic viewport height */
+}
+
+.mobile-min-vh {
+  min-height: 100vh; /* fallback for older browsers */
+  min-height: 100dvh; /* dynamic viewport height */
+}
+
+/* iOS Safari fixes */
+@supports (-webkit-touch-callout: none) {
+  .mobile-vh {
+    height: -webkit-fill-available;
+  }
+}
+
+/* Safe area support for iOS */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0.75rem);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+/* Prevent mobile zoom on input focus */
+input, textarea, select {
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  input, textarea, select {
+    font-size: 16px;
+  }
+}
+
 /* Custom scrollbar */
 .scrollbar-hide {
   -ms-overflow-style: none;

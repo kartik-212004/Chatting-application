@@ -148,9 +148,9 @@ export default function ChatPage() {
   };
 
   return (
-    <div className='h-screen flex flex-col bg-gradient-to-br from-background to-muted/20'>
+    <div className='mobile-vh flex flex-col bg-gradient-to-br from-background to-muted/20'>
       {/* Mobile Header */}
-      <div className='md:hidden'>
+      <div className='md:hidden flex-shrink-0'>
         <Card className='border-0 border-b rounded-none'>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 p-4'>
             <div className='flex items-center gap-3'>
@@ -162,7 +162,7 @@ export default function ChatPage() {
                 </SheetTrigger>
                 <SheetContent side='left' className='w-80'>
                   <SheetHeader>
-                    <SheetTitle className='font-clash font-medium'>Chat Room</SheetTitle>
+                    <SheetTitle className='font-satoshi font-medium'>Chat Room</SheetTitle>
                     <SheetDescription className='font-light'>
                       {connectedUsers.length} members online
                     </SheetDescription>
@@ -204,7 +204,7 @@ export default function ChatPage() {
                               </Avatar>
                               <div className='absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-background' />
                             </div>
-                            <span className='text-sm font-medium font-clash'>{user}</span>
+                            <span className='text-sm font-medium font-satoshi'>{user}</span>
                             {user === name && (
                               <span className='text-xs text-muted-foreground font-light'>(You)</span>
                             )}
@@ -254,12 +254,12 @@ export default function ChatPage() {
         </Card>
       </div>
 
-      <div className='flex flex-1 overflow-hidden'>
+      <div className='flex flex-1 overflow-hidden min-h-0'>
         {/* Desktop Sidebar */}
-        <Card className='w-80 border-0 border-r rounded-none hidden md:block'>
+        <Card className='w-80 border-0 border-r rounded-none hidden md:block flex-shrink-0'>
           <CardHeader className='border-b p-4'>          <div className='flex items-center justify-between'>
             <div>
-              <h2 className='text-lg font-medium font-clash'>Chat Room</h2>
+              <h2 className='text-lg font-medium font-satoshi'>Chat Room</h2>
               <p className='text-sm text-muted-foreground font-light'>
                 {connectedUsers.length} online
               </p>
@@ -313,7 +313,7 @@ export default function ChatPage() {
                       </Avatar>
                       <div className='absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-background' />
                     </div>
-                    <span className='text-sm font-medium font-clash'>{user}</span>
+                    <span className='text-sm font-medium font-satoshi'>{user}</span>
                     {user === name && (
                       <span className='text-xs text-muted-foreground font-light'>(You)</span>
                     )}
@@ -325,12 +325,12 @@ export default function ChatPage() {
         </Card>
 
         {/* Main Chat Area */}
-        <div className='flex-1 flex flex-col'>
+        <div className='flex-1 flex flex-col overflow-hidden min-h-0'>
           {/* Desktop Header */}
-          <Card className='border-0 border-b rounded-none hidden md:block'>
+          <Card className='border-0 border-b rounded-none hidden md:block flex-shrink-0'>
             <CardHeader className='flex flex-row items-center justify-between space-y-0 p-4'>
               <div>
-                <h1 className='font-medium text-lg font-clash'>Chat Room</h1>
+                <h1 className='font-medium text-lg font-satoshi'>Chat Room</h1>
                 <p className='text-sm text-muted-foreground font-light'>
                   {connectedUsers.length} online
                 </p>
@@ -339,8 +339,8 @@ export default function ChatPage() {
           </Card>
 
           {/* Messages */}
-          <div className='flex-1 overflow-hidden'>
-            <ScrollArea className='h-full p-4'>
+          <div className='flex-1 overflow-hidden min-h-0'>
+            <ScrollArea className='h-full p-3 md:p-4'>
               <div className='space-y-4 max-w-4xl mx-auto'>
                 {messages.length === 0 ? (
                   <div className='flex justify-center items-center h-64'>
@@ -409,11 +409,11 @@ export default function ChatPage() {
           </div>
 
           {/* Message Input */}
-          <Card className='border-0 border-t rounded-none'>
-            <CardContent className='p-3 md:p-4'>
+          <Card className='border-0 border-t rounded-none flex-shrink-0'>
+            <CardContent className='p-3 md:p-4 pb-safe'>
               <div className='max-w-4xl mx-auto'>
                 <div className='flex gap-2 md:gap-3'>
-                  <Avatar className='w-8 h-8 md:w-10 md:h-10'>
+                  <Avatar className='w-8 h-8 md:w-10 md:h-10 flex-shrink-0'>
                     <AvatarFallback className='text-xs md:text-sm bg-primary text-primary-foreground'>
                       {getInitials(name)}
                     </AvatarFallback>
@@ -424,12 +424,15 @@ export default function ChatPage() {
                       onChange={e => setNewMessage(e.target.value)}
                       onKeyPress={handleKeyPress}
                       placeholder='Type a message...'
-                      className='flex-1 h-10 md:h-12 rounded-full'
+                      className='flex-1 h-10 md:h-12 rounded-full text-base'
+                      autoComplete='off'
+                      autoCorrect='off'
+                      spellCheck='false'
                     />
                     <Button
                       onClick={sendMessage}
                       size='icon'
-                      className='h-10 w-10 md:h-12 md:w-12 rounded-full'
+                      className='h-10 w-10 md:h-12 md:w-12 rounded-full flex-shrink-0'
                       disabled={!newMessage.trim()}
                     >
                       <Send className='h-4 w-4 md:h-5 md:w-5' />
