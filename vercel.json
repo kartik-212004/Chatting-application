@@ -1,6 +1,0 @@
-{
-  "buildCommand": "pnpm turbo build ",
-  "outputDirectory": "apps/chat/.next",
-  "installCommand": "pnpm install",
-  "framework": "nextjs"
-}
