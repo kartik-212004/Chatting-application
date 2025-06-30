@@ -37,7 +37,8 @@ export default function HomePage() {
       toast('Please enter your name and room code');
       return;
     }
-    const ws = new WebSocket(`ws://localhost:8080`);
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080';
+    const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
       ws.send(

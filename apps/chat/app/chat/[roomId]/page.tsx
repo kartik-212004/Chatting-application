@@ -8,14 +8,17 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 import { useEffect, useRef, useState } from 'react';
 
+import { useTheme } from 'next-themes';
 import { useParams, useSearchParams } from 'next/navigation';
 
+import { Moon, Sun } from 'lucide-react';
 import { Copy, MoreVertical, Search, Send, Settings, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ChatPage() {
   const [newMessage, setNewMessage] = useState('');
   const [messages, setMessages] = useState<{ name: string; payload: string }[]>([]);
+  const { theme, setTheme } = useTheme();
   const [roomId, setRoomId] = useState<string | null>(null);
   const [connectedUsers, setConnectedUsers] = useState<string[]>([]);
   const ws = useRef<WebSocket | null>(null);
@@ -33,7 +36,8 @@ export default function ChatPage() {
     if (!params.roomId) return;
 
     const connectWebSocket = () => {
-      ws.current = new WebSocket('ws://localhost:8080');
+      const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080';
+      ws.current = new WebSocket(wsUrl);
 
       ws.current.onopen = () => {
         console.log('WebSocket connected');
@@ -127,6 +131,20 @@ export default function ChatPage() {
 
   return (
     <div className='h-screen from-background to-muted/20 flex'>
+      <div className='absolute top-4 right-4'>
+        <Button
+          variant='ghost'
+          size='icon'
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          className='rounded-full'
+        >
+          {theme === 'dark' ? (
+            <Sun className='h-5 w-5' />
+          ) : (
+            <Moon className='h-5 w-5' />
+          )}
+        </Button>
+      </div>
       {/* Sidebar */}
       <Card className='w-80 border-0 border-r rounded-none hidden md:block'>
         <CardHeader className='border-b p-4'>
