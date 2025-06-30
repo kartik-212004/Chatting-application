@@ -44,7 +44,7 @@ const satoshi = localFont({
 export const metadata: Metadata = {
   title: 'Real Time Chat',
   description: 'A simple chat application UI',
-  generator: 'v0.dev',
+  generator: 'kartik',
 };
 
 export const viewport = {

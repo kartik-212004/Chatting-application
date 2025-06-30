@@ -58,25 +58,22 @@
   }
 }
 
-/* Mobile viewport height fixes */
 .mobile-vh {
-  height: 100vh; /* fallback for older browsers */
-  height: 100dvh; /* dynamic viewport height */
+  height: 100vh;
+  height: 100dvh;
 }
 
 .mobile-min-vh {
-  min-height: 100vh; /* fallback for older browsers */
-  min-height: 100dvh; /* dynamic viewport height */
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
-/* iOS Safari fixes */
 @supports (-webkit-touch-callout: none) {
   .mobile-vh {
     height: -webkit-fill-available;
   }
 }
 
-/* Safe area support for iOS */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0.75rem);
 }
@@ -85,7 +82,6 @@
   padding-top: env(safe-area-inset-top, 0);
 }
 
-/* Prevent mobile zoom on input focus */
 input, textarea, select {
   font-size: 16px;
 }
@@ -95,15 +91,25 @@ input, textarea, select {
     font-size: 16px;
   }
   
-  /* Emoji picker mobile improvements */
   .EmojiPickerReact {
     max-height: 350px !important;
     border-radius: 12px !important;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
   }
+  
+  .mobile-input-container {
+    padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
+    padding-bottom: max(env(safe-area-inset-bottom), 12px);
+  }
+  
+  input[type="text"], input[type="email"], input[type="password"], textarea {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 0;
+  }
 }
 
-/* Custom scrollbar */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -112,8 +118,6 @@ input, textarea, select {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
-
-/* Smooth animations */
 * {
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow,
     transform, filter, backdrop-filter;

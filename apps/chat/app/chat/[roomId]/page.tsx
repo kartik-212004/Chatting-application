@@ -174,11 +174,28 @@ export default function ChatPage() {
     setMessages(prev => [...prev, message.data]);
     setNewMessage('');
 
-    if (inputRef.current) {
-      inputRef.current.focus();
+    if (isMobile) {
+      requestAnimationFrame(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+          inputRef.current.setSelectionRange(0, 0);
+        }
+        setTimeout(() => {
+          scrollToBottom();
+          if (inputRef.current) {
+            inputRef.current.focus();
+          }
+        }, 10);
+      });
+    } else {
+      requestAnimationFrame(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+          inputRef.current.setSelectionRange(0, 0);
+        }
+        setTimeout(scrollToBottom, 10);
+      });
     }
-
-    setTimeout(scrollToBottom, 50);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -530,7 +547,7 @@ export default function ChatPage() {
               )}
 
               <div className='max-w-4xl mx-auto'>
-                <div className='flex gap-2 md:gap-3'>
+                <div className='flex gap-2 md:gap-3 mb-2 md:mb-0'>
                   <Avatar className='w-8 h-8 md:w-10 md:h-10 flex-shrink-0'>
                     <AvatarFallback className='text-xs md:text-sm bg-primary text-primary-foreground'>
                       {getInitials(name)}
@@ -547,6 +564,8 @@ export default function ChatPage() {
                       autoComplete='off'
                       autoCorrect='off'
                       spellCheck='false'
+                      inputMode='text'
+                      enterKeyHint='send'
                     />
                     <Button
                       onClick={() => setShowEmojiPicker(!showEmojiPicker)}
