@@ -3,28 +3,56 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 
 import { useEffect, useRef, useState } from 'react';
 
 import { useTheme } from 'next-themes';
+import dynamic from 'next/dynamic';
 import { useParams, useSearchParams } from 'next/navigation';
 
 import { Moon, Sun } from 'lucide-react';
-import { Copy, MoreVertical, Search, Send, Settings, Users } from 'lucide-react';
+import {
+  Copy,
+  MoreVertical,
+  Search,
+  Send,
+  Settings,
+  Smile,
+  Users,
+} from 'lucide-react';
 import { toast } from 'sonner';
+
+// Dynamically import EmojiPicker to avoid SSR issues
+const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false });
 
 export default function ChatPage() {
   const [newMessage, setNewMessage] = useState('');
   const [messages, setMessages] = useState<{ name: string; payload: string }[]>([]);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const { theme, setTheme } = useTheme();
   const [roomId, setRoomId] = useState<string | null>(null);
   const [connectedUsers, setConnectedUsers] = useState<string[]>([]);
   const ws = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
   const params = useParams();
   const searchParams = useSearchParams();
   const name = searchParams.get('name') || 'User';
@@ -34,9 +62,41 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Check if mobile on mount
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Handle click outside emoji picker
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target as Node)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    if (showEmojiPicker) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showEmojiPicker]);
 
   useEffect(() => {
     if (params.roomId) {
@@ -122,13 +182,19 @@ export default function ChatPage() {
     ws.current.send(JSON.stringify(message));
     setMessages(prev => [...prev, message.data]);
     setNewMessage('');
-    
-    // Scroll to bottom after sending message
-    setTimeout(scrollToBottom, 100);
+
+    // Keep focus on input to prevent keyboard collapse
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+
+    // Scroll to bottom after sending message with a delay to prevent focus loss
+    setTimeout(scrollToBottom, 50);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
       sendMessage();
     }
   };
@@ -146,6 +212,26 @@ export default function ChatPage() {
   const getInitials = (name: string) => {
     return name.charAt(0).toUpperCase();
   };
+  const onEmojiClick = (emojiObject: any) => {
+    const currentValue = newMessage;
+    const cursorPosition = inputRef.current?.selectionStart || currentValue.length;
+    const newValue =
+      currentValue.slice(0, cursorPosition) +
+      emojiObject.emoji +
+      currentValue.slice(cursorPosition);
+
+    setNewMessage(newValue);
+    setShowEmojiPicker(false);
+
+    // Restore focus and cursor position
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+        const newCursorPosition = cursorPosition + emojiObject.emoji.length;
+        inputRef.current.setSelectionRange(newCursorPosition, newCursorPosition);
+      }
+    }, 0);
+  };
 
   return (
     <div className='mobile-vh flex flex-col bg-gradient-to-br from-background to-muted/20'>
@@ -156,18 +242,27 @@ export default function ChatPage() {
             <div className='flex items-center gap-3'>
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant='ghost' size='icon' className='rounded-full'>
+                  <Button
+                    variant='ghost'
+                    size='icon'
+                    className='rounded-full'
+                  >
                     <Users className='h-5 w-5' />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side='left' className='w-80'>
+                <SheetContent
+                  side='left'
+                  className='w-80'
+                >
                   <SheetHeader>
-                    <SheetTitle className='font-satoshi font-medium'>Chat Room</SheetTitle>
+                    <SheetTitle className='font-satoshi font-medium'>
+                      Chat Room
+                    </SheetTitle>
                     <SheetDescription className='font-light'>
                       {connectedUsers.length} members online
                     </SheetDescription>
                   </SheetHeader>
-                  
+
                   <div className='mt-6 space-y-4'>
                     {roomId && (
                       <div>
@@ -204,9 +299,13 @@ export default function ChatPage() {
                               </Avatar>
                               <div className='absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-background' />
                             </div>
-                            <span className='text-sm font-medium font-satoshi'>{user}</span>
+                            <span className='text-sm font-medium font-satoshi'>
+                              {user}
+                            </span>
                             {user === name && (
-                              <span className='text-xs text-muted-foreground font-light'>(You)</span>
+                              <span className='text-xs text-muted-foreground font-light'>
+                                (You)
+                              </span>
                             )}
                           </div>
                         ))}
@@ -215,7 +314,7 @@ export default function ChatPage() {
                   </div>
                 </SheetContent>
               </Sheet>
-              
+
               <div>
                 <h1 className='font-semibold text-lg'>Chat Room</h1>
                 <p className='text-sm text-muted-foreground'>
@@ -226,7 +325,11 @@ export default function ChatPage() {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant='ghost' size='icon' className='rounded-full'>
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  className='rounded-full'
+                >
                   <MoreVertical className='h-5 w-5' />
                 </Button>
               </DropdownMenuTrigger>
@@ -235,7 +338,9 @@ export default function ChatPage() {
                   <Copy className='h-4 w-4 mr-2' />
                   Copy Room ID
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+                <DropdownMenuItem
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                >
                   {theme === 'dark' ? (
                     <>
                       <Sun className='h-4 w-4 mr-2' />
@@ -257,13 +362,15 @@ export default function ChatPage() {
       <div className='flex flex-1 overflow-hidden min-h-0'>
         {/* Desktop Sidebar */}
         <Card className='w-80 border-0 border-r rounded-none hidden md:block flex-shrink-0'>
-          <CardHeader className='border-b p-4'>          <div className='flex items-center justify-between'>
-            <div>
-              <h2 className='text-lg font-medium font-satoshi'>Chat Room</h2>
-              <p className='text-sm text-muted-foreground font-light'>
-                {connectedUsers.length} online
-              </p>
-            </div>
+          <CardHeader className='border-b p-4'>
+            {' '}
+            <div className='flex items-center justify-between'>
+              <div>
+                <h2 className='text-lg font-medium font-satoshi'>Chat Room</h2>
+                <p className='text-sm text-muted-foreground font-light'>
+                  {connectedUsers.length} online
+                </p>
+              </div>
               <div className='flex items-center gap-2'>
                 <Button
                   variant='ghost'
@@ -271,7 +378,11 @@ export default function ChatPage() {
                   onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                   className='h-8 w-8'
                 >
-                  {theme === 'dark' ? <Sun className='h-4 w-4' /> : <Moon className='h-4 w-4' />}
+                  {theme === 'dark' ? (
+                    <Sun className='h-4 w-4' />
+                  ) : (
+                    <Moon className='h-4 w-4' />
+                  )}
                 </Button>
               </div>
             </div>
@@ -315,7 +426,9 @@ export default function ChatPage() {
                     </div>
                     <span className='text-sm font-medium font-satoshi'>{user}</span>
                     {user === name && (
-                      <span className='text-xs text-muted-foreground font-light'>(You)</span>
+                      <span className='text-xs text-muted-foreground font-light'>
+                        (You)
+                      </span>
                     )}
                   </div>
                 ))}
@@ -364,7 +477,9 @@ export default function ChatPage() {
                               </AvatarFallback>
                             </Avatar>
                           )}
-                          <div className={`max-w-[80%] md:max-w-md ${isMyMessage ? 'order-first' : ''}`}>
+                          <div
+                            className={`max-w-[80%] md:max-w-md ${isMyMessage ? 'order-first' : ''}`}
+                          >
                             <div
                               className={`rounded-2xl px-3 py-2 md:px-4 md:py-3 ${
                                 isMyMessage
@@ -372,7 +487,9 @@ export default function ChatPage() {
                                   : 'bg-muted'
                               }`}
                             >
-                              <p className='text-sm font-normal'>{message.payload}</p>
+                              <p className='text-sm font-normal'>
+                                {message.payload}
+                              </p>
                             </div>
                             <div
                               className={`flex items-center gap-2 mt-1 text-xs text-muted-foreground ${
@@ -410,7 +527,28 @@ export default function ChatPage() {
 
           {/* Message Input */}
           <Card className='border-0 border-t rounded-none flex-shrink-0'>
-            <CardContent className='p-3 md:p-4 pb-safe'>
+            <CardContent className='p-3 md:p-4 pb-safe relative'>
+              {/* Emoji Picker */}
+              {showEmojiPicker && (
+                <div
+                  ref={emojiPickerRef}
+                  className={`absolute bottom-full z-50 mb-2 ${
+                    isMobile ? 'left-2 right-2' : 'right-4'
+                  }`}
+                >
+                  <EmojiPicker
+                    onEmojiClick={onEmojiClick}
+                    width={isMobile ? 300 : 350}
+                    height={isMobile ? 350 : 400}
+                    searchDisabled={isMobile}
+                    skinTonesDisabled={isMobile}
+                    previewConfig={{
+                      showPreview: !isMobile,
+                    }}
+                  />
+                </div>
+              )}
+
               <div className='max-w-4xl mx-auto'>
                 <div className='flex gap-2 md:gap-3'>
                   <Avatar className='w-8 h-8 md:w-10 md:h-10 flex-shrink-0'>
@@ -420,6 +558,7 @@ export default function ChatPage() {
                   </Avatar>
                   <div className='flex-1 flex gap-2'>
                     <Input
+                      ref={inputRef}
                       value={newMessage}
                       onChange={e => setNewMessage(e.target.value)}
                       onKeyPress={handleKeyPress}
@@ -429,6 +568,14 @@ export default function ChatPage() {
                       autoCorrect='off'
                       spellCheck='false'
                     />
+                    <Button
+                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                      size='icon'
+                      variant='ghost'
+                      className='h-10 w-10 md:h-12 md:w-12 rounded-full flex-shrink-0'
+                    >
+                      <Smile className='h-4 w-4 md:h-5 md:w-5' />
+                    </Button>
                     <Button
                       onClick={sendMessage}
                       size='icon'

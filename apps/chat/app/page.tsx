@@ -39,7 +39,7 @@ export default function HomePage() {
     });
     const generatedCode = code.toUpperCase();
     setRoomCode(generatedCode);
-    
+
     // Automatically join the room after generating
     setTimeout(() => {
       joinRoomWithCode(generatedCode);
@@ -115,7 +115,9 @@ export default function HomePage() {
                 <MessageCircleMore className='w-8 h-8 text-primary' />
               </div>
               <div>
-                <CardTitle className='text-2xl font-semibold font-clash'>Real Time Chat</CardTitle>
+                <CardTitle className='text-2xl font-semibold font-clash'>
+                  Real Time Chat
+                </CardTitle>
                 <CardDescription className='mt-2 font-light'>
                   temporary room that expires after all users exit
                 </CardDescription>
@@ -196,7 +198,7 @@ export default function HomePage() {
           </Button>
         </div>
 
-        <div className='flex-1 flex flex-col justify-center p-6'>
+        <div className='flex-1 flex flex-col justify-center items-start p-6'>
           <div className='text-center space-y-4'>
             <div className='mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center'>
               <MessageCircleMore className='w-8 h-8 text-primary' />
@@ -259,7 +261,9 @@ export default function HomePage() {
           <div className='text-center mt-6 text-muted-foreground'>
             <div className='flex items-center justify-center gap-2'>
               <Users className='w-4 h-4' />
-              <span className='text-sm font-light'>Rooms are temporary and secure</span>
+              <span className='text-sm font-light'>
+                Rooms are temporary and secure
+              </span>
             </div>
           </div>
         </div>
